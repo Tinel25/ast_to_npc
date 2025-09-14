@@ -21,6 +21,7 @@
             padding: 10px;
             border: 1px solid #ccc;
             white-space: pre-wrap;
+            margin-bottom: 10px;
         }
 
         a {
@@ -29,12 +30,37 @@
             text-decoration: none;
             color: #0077cc;
         }
+
+        button {
+            padding: 8px 12px;
+            background-color: #0077cc;
+            color: white;
+            border: none;
+            cursor: pointer;
+            margin-bottom: 10px;
+        }
+
+        button:hover {
+            background-color: #005fa3;
+        }
     </style>
 </head>
 <body>
     <h1>Commandes TP générées</h1>
     <p>Nombre de lignes : {{ commands|length }}</p>
-    <pre>{{ commands|join('\n') }}</pre>
+    <button onclick="copyCommands()">📋 Copier les commandes</button>
+    <pre id="commandBlock">{{ commands|join('\n') }}</pre>
     <a href="/">↩ Retour</a>
+
+    <script>
+        function copyCommands() {
+            const text = document.getElementById('commandBlock').innerText;
+            navigator.clipboard.writeText(text).then(() => {
+                alert("Commandes copiées dans le presse-papiers !");
+            }).catch(err => {
+                alert("Erreur lors de la copie : " + err);
+            });
+        }
+    </script>
 </body>
 </html>
