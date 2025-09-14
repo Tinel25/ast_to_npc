@@ -31,6 +31,9 @@ def index():
             offset_y = float(request.form.get('offset_y', 0))
             offset_z = float(request.form.get('offset_z', 0))
 
+            # Récupération du delay personnalisé en ticks
+            delay_ticks = float(request.form.get('delay_ticks', 2.8))
+
             # Vérification du champ 'control'
             control_raw = request.form.get('control', '').strip()
             if control_raw:
@@ -55,7 +58,7 @@ def index():
                 t = i / steps
                 x, y, z = bezier(t, start, control, end)
                 commands.append(f"minecraft:tp {uuid} {x:.2f} {y:.2f} {z:.2f}")
-                commands.append("delay 2.8")
+                commands.append(f"delay {delay_ticks}")
 
             # Affichage du résultat
             return render_template("ast_to_npc_result.html", commands=commands)
