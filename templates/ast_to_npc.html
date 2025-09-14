@@ -25,6 +25,12 @@
             flex-shrink: 0;
         }
 
+        #threeContainer {
+            width: 500px;
+            height: 500px;
+            margin-top: 20px;
+        }
+
         h1 {
             margin-bottom: 20px;
         }
@@ -33,6 +39,7 @@
             margin-top: 0;
         }
     </style>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.152.2/build/three.min.js"></script>
 </head>
 <body>
     <h1>Générateur de commandes TP Minecraft</h1>
@@ -74,6 +81,9 @@
         <div>
             <h2>Visualisation de la courbe (projection X-Z)</h2>
             <canvas id="bezierCanvas" width="500" height="500"></canvas>
+
+            <h2>Visualisation 3D</h2>
+            <div id="threeContainer"></div>
         </div>
     </div>
 
@@ -82,7 +92,7 @@
             return input.split(',').map(Number);
         }
 
-        function drawCurve() {
+        function drawCurve2D() {
             const canvas = document.getElementById('bezierCanvas');
             const ctx = canvas.getContext('2d');
             ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -90,7 +100,6 @@
             const start = parseCoords(document.querySelector('input[name="start"]').value);
             const end = parseCoords(document.querySelector('input[name="end"]').value);
             const controlInput = document.querySelector('input[name="control"]').value.trim();
-
             const offsetX = parseFloat(document.querySelector('input[name="offset_x"]').value) || 0;
             const offsetY = parseFloat(document.querySelector('input[name="offset_y"]').value) || 0;
             const offsetZ = parseFloat(document.querySelector('input[name="offset_z"]').value) || 0;
@@ -106,7 +115,6 @@
                 ];
             }
 
-            // Projection X-Z
             const p0 = { x: start[0], y: start[2] };
             const p1 = { x: control[0], y: control[2] };
             const p2 = { x: end[0], y: end[2] };
@@ -138,13 +146,50 @@
             ctx.strokeStyle = "#0077cc";
             ctx.lineWidth = 2;
             ctx.stroke();
+
+            drawCurve3D(start, control, end);
+        }
+
+        function drawCurve3D(start, control, end) {
+            const container = document.getElementById('threeContainer');
+            container.innerHTML = ''; // reset
+
+            const scene = new THREE.Scene();
+            const camera = new THREE.PerspectiveCamera(75, 1, 0.1, 10000);
+            const renderer = new THREE.WebGLRenderer();
+            renderer.setSize(500, 500);
+            container.appendChild(renderer.domElement);
+
+            const curve = new THREE.QuadraticBezierCurve3(
+                new THREE.Vector3(...start),
+                new THREE.Vector3(...control),
+                new THREE.Vector3(...end)
+            );
+
+            const points = curve.getPoints(100);
+            const geometry = new THREE.BufferGeometry().setFromPoints(points);
+            const material = new THREE.LineBasicMaterial({ color: 0xff0000 });
+            const curveObject = new THREE.Line(geometry, material);
+            scene.add(curveObject);
+
+            // Add spheres for start, control, end
+            const sphereGeo = new THREE.SphereGeometry(1.5, 16, 16);
+            const sphereMat = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
+            scene.add(new THREE.Mesh(sphereGeo, sphereMat).position.set(...start));
+            scene.add(new THREE.Mesh(sphereGeo, sphereMat).position.set(...control));
+            scene.add(new THREE.Mesh(sphereGeo, sphereMat).position.set(...end));
+
+            camera.position.set(start[0], start[1] + 20, start[2] + 20);
+            camera.lookAt(...control);
+
+            renderer.render(scene, camera);
         }
 
         document.querySelectorAll('input').forEach(input => {
-            input.addEventListener('input', drawCurve);
+            input.addEventListener('input', drawCurve2D);
         });
 
-        window.onload = drawCurve;
+        window.onload = drawCurve2D;
     </script>
 </body>
 </html>
