@@ -40,7 +40,6 @@
         }
     </style>
     <script src="https://cdn.jsdelivr.net/npm/three@0.152.2/build/three.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.152.2/examples/js/controls/OrbitControls.min.js"></script>
 </head>
 <body>
     <h1>Générateur de commandes TP Minecraft</h1>
@@ -164,9 +163,10 @@
             renderer.setSize(500, 500);
             container.appendChild(renderer.domElement);
 
-            const controls = new THREE.OrbitControls(camera, renderer.domElement);
-            controls.enableDamping = true;
-            controls.dampingFactor = 0.05;
+            const controls = new THREE.TrackballControls(camera, renderer.domElement);
+            controls.rotateSpeed = 5.0;
+            controls.zoomSpeed = 2.0;
+            controls.panSpeed = 1.0;
 
             const curve = new THREE.QuadraticBezierCurve3(
                 new THREE.Vector3(...start),
@@ -213,5 +213,6 @@
 
         window.onload = drawCurve2D;
     </script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.152.2/examples/js/controls/TrackballControls.js"></script>
 </body>
 </html>
