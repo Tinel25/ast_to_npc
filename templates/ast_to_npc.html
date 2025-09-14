@@ -3,47 +3,76 @@
 <head>
     <title>Générateur TP Minecraft</title>
     <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+
+        .layout {
+            display: flex;
+            gap: 40px;
+            align-items: flex-start;
+        }
+
+        form {
+            flex: 1;
+            max-width: 400px;
+        }
+
         canvas {
             border: 1px solid #000;
             margin-top: 20px;
+            flex-shrink: 0;
+        }
+
+        h1 {
+            margin-bottom: 20px;
+        }
+
+        h2 {
+            margin-top: 0;
         }
     </style>
 </head>
 <body>
     <h1>Générateur de commandes TP Minecraft</h1>
-    <form method="post">
-        <label>Départ (x,y,z):</label><br>
-        <input name="start" value="3194,77.00,400"><br><br>
+    <div class="layout">
+        <form method="post">
+            <label>Départ (x,y,z):</label><br>
+            <input name="start" value="3194,77.00,400"><br><br>
 
-        <label>Arrivée (x,y,z):</label><br>
-        <input name="end" value="3183.30,77.00,377.14"><br><br>
+            <label>Arrivée (x,y,z):</label><br>
+            <input name="end" value="3183.30,77.00,377.14"><br><br>
 
-        <label>Point de contrôle (x,y,z) <em>(laisser vide pour auto)</em>:</label><br>
-        <input name="control" placeholder="auto"><br><br>
+            <label>Point de contrôle (x,y,z) <em>(laisser vide pour auto)</em>:</label><br>
+            <input name="control" placeholder="auto"><br><br>
 
-        <label>Décalage X du point de contrôle:</label><br>
-        <input name="offset_x" value="0"><br><br>
+            <label>Décalage X du point de contrôle:</label><br>
+            <input name="offset_x" value="0"><br><br>
 
-        <label>Décalage Y du point de contrôle:</label><br>
-        <input name="offset_y" value="0"><br><br>
+            <label>Décalage Y du point de contrôle:</label><br>
+            <input name="offset_y" value="0"><br><br>
 
-        <label>Décalage Z du point de contrôle:</label><br>
-        <input name="offset_z" value="6"><br><br>
+            <label>Décalage Z du point de contrôle:</label><br>
+            <input name="offset_z" value="6"><br><br>
 
-        <label>UUID:</label><br>
-        <input name="uuid" value="b968c6c4-03fb-4e6b-ac51-3afb62ac3de3"><br><br>
+            <label>UUID:</label><br>
+            <input name="uuid" value="b968c6c4-03fb-4e6b-ac51-3afb62ac3de3"><br><br>
 
-        <label>Vitesse (blocs/sec):</label><br>
-        <input name="speed" value="4.317"><br><br>
+            <label>Vitesse (blocs/sec):</label><br>
+            <input name="speed" value="4.317"><br><br>
 
-        <label>Tick interval:</label><br>
-        <input name="tick_interval" value="2"><br><br>
+            <label>Tick interval:</label><br>
+            <input name="tick_interval" value="2"><br><br>
 
-        <button type="submit">Générer</button>
-    </form>
+            <button type="submit">Générer</button>
+        </form>
 
-    <h2>Visualisation de la courbe (projection X-Z)</h2>
-    <canvas id="bezierCanvas" width="500" height="500"></canvas>
+        <div>
+            <h2>Visualisation de la courbe (projection X-Z)</h2>
+            <canvas id="bezierCanvas" width="500" height="500"></canvas>
+        </div>
+    </div>
 
     <script>
         function parseCoords(input) {
@@ -109,12 +138,10 @@
             ctx.stroke();
         }
 
-        // Mise à jour automatique
         document.querySelectorAll('input').forEach(input => {
             input.addEventListener('input', drawCurve);
         });
 
-        // Dessin initial
         window.onload = drawCurve;
     </script>
 </body>
