@@ -2,6 +2,12 @@
 <html>
 <head>
     <title>Générateur TP Minecraft</title>
+    <style>
+        canvas {
+            border: 1px solid #000;
+            margin-top: 20px;
+        }
+    </style>
 </head>
 <body>
     <h1>Générateur de commandes TP Minecraft</h1>
@@ -35,5 +41,69 @@
 
         <button type="submit">Générer</button>
     </form>
+
+    <h2>Visualisation de la courbe (projection X-Z)</h2>
+    <canvas id="bezierCanvas" width="500" height="500"></canvas>
+
+    <script>
+        function parseCoords(input) {
+            return input.split(',').map(Number);
+        }
+
+        function drawCurve() {
+            const canvas = document.getElementById('bezierCanvas');
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            const start = parseCoords(document.querySelector('input[name="start"]').value);
+            const end = parseCoords(document.querySelector('input[name="end"]').value);
+            const controlInput = document.querySelector('input[name="control"]').value.trim();
+
+            const offsetX = parseFloat(document.querySelector('input[name="offset_x"]').value) || 0;
+            const offsetY = parseFloat(document.querySelector('input[name="offset_y"]').value) || 0;
+            const offsetZ = parseFloat(document.querySelector('input[name="offset_z"]').value) || 0;
+
+            let control;
+            if (controlInput) {
+                control = parseCoords(controlInput);
+            } else {
+                control = [
+                    (start[0] + end[0]) / 2 + offsetX,
+                    (start[1] + end[1]) / 2 + offsetY,
+                    (start[2] + end[2]) / 2 + offsetZ
+                ];
+            }
+
+            // Projection X-Z
+            const p0 = { x: start[0], y: start[2] };
+            const p1 = { x: control[0], y: control[2] };
+            const p2 = { x: end[0], y: end[2] };
+
+            // Normalisation pour canvas
+            const scale = 5;
+            const offset = 50;
+
+            ctx.beginPath();
+            ctx.moveTo(p0.x * scale - offset, canvas.height - (p0.y * scale - offset));
+
+            for (let t = 0; t <= 1; t += 0.01) {
+                const x = (1 - t)**2 * p0.x + 2 * (1 - t) * t * p1.x + t**2 * p2.x;
+                const y = (1 - t)**2 * p0.y + 2 * (1 - t) * t * p1.y + t**2 * p2.y;
+                ctx.lineTo(x * scale - offset, canvas.height - (y * scale - offset));
+            }
+
+            ctx.strokeStyle = "#0077cc";
+            ctx.lineWidth = 2;
+            ctx.stroke();
+        }
+
+        // Mise à jour automatique
+        document.querySelectorAll('input').forEach(input => {
+            input.addEventListener('input', drawCurve);
+        });
+
+        // Dessin initial
+        window.onload = drawCurve;
+    </script>
 </body>
 </html>
