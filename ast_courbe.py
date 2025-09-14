@@ -33,9 +33,10 @@ def index():
                 commands.append(f"minecraft:tp {uuid} {x:.2f} {y:.2f} {z:.2f}")
                 commands.append("delay 2.8")
 
-            return render_template("result.html", commands=commands)
+            return render_template("ast_to_npc_result.html", commands=commands)
 
         except Exception as e:
             return f"Erreur dans les données : {e}"
 
-    return render_template("index.html")
+    return render_template("ast_to_npc.html")
+
