@@ -65,6 +65,9 @@
             <label>Tick interval:</label><br>
             <input name="tick_interval" value="2"><br><br>
 
+            <label>Delay personnalisé (en ticks):</label><br>
+            <input name="delay_ticks" value="2.8"><br><br>
+
             <button type="submit">Générer</button>
         </form>
 
@@ -108,7 +111,6 @@
             const p1 = { x: control[0], y: control[2] };
             const p2 = { x: end[0], y: end[2] };
 
-            // Normalisation pour canvas
             const minX = Math.min(p0.x, p1.x, p2.x);
             const minY = Math.min(p0.y, p1.y, p2.y);
             const maxX = Math.max(p0.x, p1.x, p2.x);
