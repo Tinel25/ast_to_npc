@@ -189,8 +189,9 @@
             createSphere(control, 0x0000ff);
             createSphere(end, 0xff0000);
 
-            camera.position.set(start[0] + 10, start[1] + 10, start[2] + 10);
+            camera.position.set(control[0] + 20, control[1] + 20, control[2] + 20);
             camera.lookAt(...control);
+
 
             renderer.render(scene, camera);
         }
