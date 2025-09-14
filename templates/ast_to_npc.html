@@ -40,17 +40,17 @@
         }
     </style>
     <script src="https://cdn.jsdelivr.net/npm/three@0.152.2/build/three.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.152.2/examples/js/controls/TrackballControls.js"></script>
 </head>
 <body>
     <h1>Générateur de commandes TP Minecraft</h1>
     <div class="layout">
         <form method="post">
+            <!-- Formulaire inchangé -->
             <label>Départ (x,y,z):</label><br>
-            <input name="start" value="3194,77.00,400"><br><br>
+            <input name="start" value="0,0,0"><br><br>
 
             <label>Arrivée (x,y,z):</label><br>
-            <input name="end" value="3183.30,77.00,377.14"><br><br>
+            <input name="end" value="10,0,10"><br><br>
 
             <label>Point de contrôle (x,y,z) <em>(laisser vide pour auto)</em>:</label><br>
             <input name="control" placeholder="auto"><br><br>
@@ -59,16 +59,16 @@
             <input name="offset_x" value="0"><br><br>
 
             <label>Décalage Y du point de contrôle:</label><br>
-            <input name="offset_y" value="0"><br><br>
+            <input name="offset_y" value="5"><br><br>
 
             <label>Décalage Z du point de contrôle:</label><br>
             <input name="offset_z" value="0"><br><br>
 
             <label>UUID:</label><br>
-            <input name="uuid" value="b968c6c4-03fb-4e6b-ac51-3afb62ac3de3"><br><br>
+            <input name="uuid" value="test-uuid"><br><br>
 
             <label>Vitesse (blocs/sec):</label><br>
-            <input name="speed" value="4.317"><br><br>
+            <input name="speed" value="4"><br><br>
 
             <label>Tick interval:</label><br>
             <input name="tick_interval" value="2"><br><br>
@@ -119,6 +119,7 @@
                 ];
             }
 
+            // 2D projection
             const p0 = { x: start[0], y: start[2] };
             const p1 = { x: control[0], y: control[2] };
             const p2 = { x: end[0], y: end[2] };
@@ -159,15 +160,10 @@
             container.innerHTML = '';
 
             const scene = new THREE.Scene();
-            const camera = new THREE.PerspectiveCamera(75, 1, 0.1, 10000);
+            const camera = new THREE.PerspectiveCamera(75, 1, 0.1, 1000);
             const renderer = new THREE.WebGLRenderer();
             renderer.setSize(500, 500);
             container.appendChild(renderer.domElement);
-
-            const controls = new THREE.TrackballControls(camera, renderer.domElement);
-            controls.rotateSpeed = 5.0;
-            controls.zoomSpeed = 2.0;
-            controls.panSpeed = 1.0;
 
             const curve = new THREE.QuadraticBezierCurve3(
                 new THREE.Vector3(...start),
@@ -181,28 +177,22 @@
             const curveObject = new THREE.Line(geometry, material);
             scene.add(curveObject);
 
-            function createPoint(position, color) {
-                const sphereGeo = new THREE.SphereGeometry(1.5, 16, 16);
-                const sphereMat = new THREE.MeshBasicMaterial({ color });
-                const mesh = new THREE.Mesh(sphereGeo, sphereMat);
-                mesh.position.set(...position);
-                return mesh;
+            function createSphere(pos, color) {
+                const geo = new THREE.SphereGeometry(0.5, 16, 16);
+                const mat = new THREE.MeshBasicMaterial({ color });
+                const mesh = new THREE.Mesh(geo, mat);
+                mesh.position.set(...pos);
+                scene.add(mesh);
             }
 
-            scene.add(createPoint(start, 0x00ff00));
-            scene.add(createPoint(control, 0x0000ff));
-            scene.add(createPoint(end, 0xff0000));
+            createSphere(start, 0x00ff00);
+            createSphere(control, 0x0000ff);
+            createSphere(end, 0xff0000);
 
-            camera.position.set(control[0] + 20, control[1] + 20, control[2] + 20);
+            camera.position.set(start[0] + 10, start[1] + 10, start[2] + 10);
             camera.lookAt(...control);
 
-            function animate() {
-                requestAnimationFrame(animate);
-                controls.update();
-                renderer.render(scene, camera);
-            }
-
-            animate();
+            renderer.render(scene, camera);
         }
 
         document.querySelectorAll('input').forEach(input => {
