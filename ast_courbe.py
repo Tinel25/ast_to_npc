@@ -21,11 +21,28 @@ def index():
             # Récupération et conversion des données du formulaire
             start = tuple(map(float, request.form['start'].split(',')))
             end = tuple(map(float, request.form['end'].split(',')))
-            control = tuple(map(float, request.form['control'].split(',')))
             uuid = request.form['uuid']
             speed = float(request.form['speed'])
             tick_interval = int(request.form['tick_interval'])
             tick_duration = tick_interval * 0.05
+
+            # Récupération des offsets
+            offset_x = float(request.form.get('offset_x', 0))
+            offset_y = float(request.form.get('offset_y', 0))
+            offset_z = float(request.form.get('offset_z', 0))
+
+            # Vérification du champ 'control'
+            control_raw = request.form.get('control', '').strip()
+            if control_raw:
+                # Si l'utilisateur a fourni un point de contrôle
+                control = tuple(map(float, control_raw.split(',')))
+            else:
+                # Calcul automatique du point de contrôle avec décalage
+                control = (
+                    (start[0] + end[0]) / 2 + offset_x,
+                    (start[1] + end[1]) / 2 + offset_y,
+                    (start[2] + end[2]) / 2 + offset_z
+                )
 
             # Calcul de la distance et du nombre d'étapes
             distance = math.sqrt(sum((end[i] - start[i])**2 for i in range(3)))
