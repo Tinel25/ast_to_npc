@@ -40,6 +40,7 @@
         }
     </style>
     <script src="https://cdn.jsdelivr.net/npm/three@0.152.2/build/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.152.2/examples/js/controls/TrackballControls.js"></script>
 </head>
 <body>
     <h1>Générateur de commandes TP Minecraft</h1>
@@ -180,20 +181,17 @@
             const curveObject = new THREE.Line(geometry, material);
             scene.add(curveObject);
 
-            const sphereGeo = new THREE.SphereGeometry(1.5, 16, 16);
-            const sphereMat = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
+            function createPoint(position, color) {
+                const sphereGeo = new THREE.SphereGeometry(1.5, 16, 16);
+                const sphereMat = new THREE.MeshBasicMaterial({ color });
+                const mesh = new THREE.Mesh(sphereGeo, sphereMat);
+                mesh.position.set(...position);
+                return mesh;
+            }
 
-            const startMesh = new THREE.Mesh(sphereGeo, sphereMat);
-            startMesh.position.set(...start);
-            scene.add(startMesh);
-
-            const controlMesh = new THREE.Mesh(sphereGeo, sphereMat);
-            controlMesh.position.set(...control);
-            scene.add(controlMesh);
-
-            const endMesh = new THREE.Mesh(sphereGeo, sphereMat);
-            endMesh.position.set(...end);
-            scene.add(endMesh);
+            scene.add(createPoint(start, 0x00ff00));
+            scene.add(createPoint(control, 0x0000ff));
+            scene.add(createPoint(end, 0xff0000));
 
             camera.position.set(control[0] + 20, control[1] + 20, control[2] + 20);
             camera.lookAt(...control);
@@ -213,6 +211,5 @@
 
         window.onload = drawCurve2D;
     </script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.152.2/examples/js/controls/TrackballControls.js"></script>
 </body>
 </html>
