@@ -2,9 +2,38 @@
 <html>
 <head>
     <title>Commandes générées</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+
+        h1 {
+            margin-bottom: 10px;
+        }
+
+        p {
+            font-weight: bold;
+        }
+
+        pre {
+            background-color: #f4f4f4;
+            padding: 10px;
+            border: 1px solid #ccc;
+            white-space: pre-wrap;
+        }
+
+        a {
+            display: inline-block;
+            margin-top: 20px;
+            text-decoration: none;
+            color: #0077cc;
+        }
+    </style>
 </head>
 <body>
     <h1>Commandes TP générées</h1>
+    <p>Nombre de lignes : {{ commands|length }}</p>
     <pre>{{ commands|join('\n') }}</pre>
     <a href="/">↩ Retour</a>
 </body>
