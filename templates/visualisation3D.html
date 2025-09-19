@@ -10,37 +10,59 @@
     <script src="https://cdn.jsdelivr.net/npm/three@0.152.2/examples/js/controls/OrbitControls.js"></script>
 </head>
 <body>
-    <script>
-        const scene = new THREE.Scene();
-        const camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
-        const renderer = new THREE.WebGLRenderer();
-        renderer.setSize(window.innerWidth, window.innerHeight);
-        document.body.appendChild(renderer.domElement);
+<script>
+    function parseVector(str) {
+        return str.split(',').map(Number);
+    }
 
-        const controls = new THREE.OrbitControls(camera, renderer.domElement);
+    const params = new URLSearchParams(window.location.search);
+    const start = parseVector(params.get('start') || '0,0,0');
+    const control = parseVector(params.get('control') || '10,10,10');
+    const end = parseVector(params.get('end') || '20,0,0');
 
-        const curve = new THREE.QuadraticBezierCurve3(
-            new THREE.Vector3(0, 0, 0),
-            new THREE.Vector3(10, 15, 5),
-            new THREE.Vector3(20, 0, 10)
-        );
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
+    const renderer = new THREE.WebGLRenderer();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    document.body.appendChild(renderer.domElement);
 
-        const points = curve.getPoints(100);
-        const geometry = new THREE.BufferGeometry().setFromPoints(points);
-        const material = new THREE.LineBasicMaterial({ color: 0xff0000 });
-        const curveObject = new THREE.Line(geometry, material);
-        scene.add(curveObject);
+    const controls = new THREE.OrbitControls(camera, renderer.domElement);
 
-        camera.position.set(30, 30, 30);
+    const curve = new THREE.QuadraticBezierCurve3(
+        new THREE.Vector3(...start),
+        new THREE.Vector3(...control),
+        new THREE.Vector3(...end)
+    );
+
+    const points = curve.getPoints(100);
+    const geometry = new THREE.BufferGeometry().setFromPoints(points);
+    const material = new THREE.LineBasicMaterial({ color: 0xff0000 });
+    const curveObject = new THREE.Line(geometry, material);
+    scene.add(curveObject);
+
+    function createSphere(pos, color) {
+        const geo = new THREE.SphereGeometry(0.5, 16, 16);
+        const mat = new THREE.MeshBasicMaterial({ color });
+        const mesh = new THREE.Mesh(geo, mat);
+        mesh.position.set(...pos);
+        scene.add(mesh);
+    }
+
+    createSphere(start, 0x00ff00);   // Départ
+    createSphere(control, 0x0000ff); // Point de contrôle
+    createSphere(end, 0xff0000);     // Arrivée
+
+    camera.position.set(control[0] + 20, control[1] + 20, control[2] + 20);
+    camera.lookAt(...control);
+    controls.update();
+
+    function animate() {
+        requestAnimationFrame(animate);
         controls.update();
+        renderer.render(scene, camera);
+    }
 
-        function animate() {
-            requestAnimationFrame(animate);
-            controls.update();
-            renderer.render(scene, camera);
-        }
-
-        animate();
-    </script>
+    animate();
+</script>
 </body>
 </html>
