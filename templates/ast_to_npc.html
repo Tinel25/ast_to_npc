@@ -24,7 +24,7 @@
             gap: 20px;
         }
 
-        canvas, #threeContainer {
+        canvas {
             border: 1px solid #000;
             width: 500px;
             height: 500px;
@@ -38,14 +38,16 @@
         h2 {
             margin-top: 0;
         }
+
+        .link3D {
+            margin-top: 20px;
+        }
     </style>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.152.2/build/three.min.js"></script>
 </head>
 <body>
     <h1>Générateur de commandes TP Minecraft Tinel25</h1>
     <div class="layout">
         <form method="post">
-            <!-- Formulaire inchangé -->
             <label>Départ (x,y,z):</label><br>
             <input name="start" value="0,0,0"><br><br>
 
@@ -83,10 +85,9 @@
             <div>
                 <h2>Visualisation 2D (X-Z)</h2>
                 <canvas id="bezierCanvas" width="500" height="500"></canvas>
-            </div>
-            <div>
-                <h2>Visualisation 3D</h2>
-                <div id="threeContainer"></div>
+                <div class="link3D">
+                    <a id="link3D" href="#" target="_blank">Ouvrir la visualisation 3D interactive</a>
+                </div>
             </div>
         </div>
     </div>
@@ -119,7 +120,6 @@
                 ];
             }
 
-            // 2D projection
             const p0 = { x: start[0], y: start[2] };
             const p1 = { x: control[0], y: control[2] };
             const p2 = { x: end[0], y: end[2] };
@@ -152,48 +152,17 @@
             ctx.lineWidth = 2;
             ctx.stroke();
 
-            drawCurve3D(start, control, end);
+            update3DLink(start, control, end);
         }
 
-        function drawCurve3D(start, control, end) {
-            const container = document.getElementById('threeContainer');
-            container.innerHTML = '';
-
-            const scene = new THREE.Scene();
-            const camera = new THREE.PerspectiveCamera(75, 1, 0.1, 1000);
-            const renderer = new THREE.WebGLRenderer();
-            renderer.setSize(500, 500);
-            container.appendChild(renderer.domElement);
-
-            const curve = new THREE.QuadraticBezierCurve3(
-                new THREE.Vector3(...start),
-                new THREE.Vector3(...control),
-                new THREE.Vector3(...end)
-            );
-
-            const points = curve.getPoints(100);
-            const geometry = new THREE.BufferGeometry().setFromPoints(points);
-            const material = new THREE.LineBasicMaterial({ color: 0xff0000 });
-            const curveObject = new THREE.Line(geometry, material);
-            scene.add(curveObject);
-
-            function createSphere(pos, color) {
-                const geo = new THREE.SphereGeometry(0.5, 16, 16);
-                const mat = new THREE.MeshBasicMaterial({ color });
-                const mesh = new THREE.Mesh(geo, mat);
-                mesh.position.set(...pos);
-                scene.add(mesh);
-            }
-
-            createSphere(start, 0x00ff00);
-            createSphere(control, 0x0000ff);
-            createSphere(end, 0xff0000);
-
-            camera.position.set(control[0], control[1] + 10, control[2] + 30); // vue latérale
-            camera.lookAt(...control);
-
-
-            renderer.render(scene, camera);
+        function update3DLink(start, control, end) {
+            const link = document.getElementById('link3D');
+            const params = new URLSearchParams({
+                start: start.join(','),
+                control: control.join(','),
+                end: end.join(',')
+            });
+            link.href = `/visualisation3D?${params.toString()}`;
         }
 
         document.querySelectorAll('input').forEach(input => {
