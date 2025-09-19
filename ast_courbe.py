@@ -69,6 +69,11 @@ def index():
     # Affichage du formulaire
     return render_template("ast_to_npc.html")
 
+# Nouvelle route pour la visualisation 3D
+@app.route('/visualisation3D')
+def visualisation3D():
+    return render_template("visualisation3D.html")
+
 # Lancement de l'application (important pour Render)
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
