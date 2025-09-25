@@ -25,6 +25,13 @@ def calculate_rotation(p1, p2):
 
     return yaw, pitch
 
+# Fonction sécurisée pour convertir en float
+def safe_float(value, default=0.0):
+    try:
+        return float(value)
+    except:
+        return default
+
 # Route principale
 @app.route('/', methods=['GET', 'POST'])
 def index():
@@ -38,24 +45,35 @@ def index():
             tick_interval = int(request.form['tick_interval'])
             tick_duration = tick_interval * 0.05
 
-            # Récupération des offsets
-            offset_x = float(request.form.get('offset_x', 0))
-            offset_y = float(request.form.get('offset_y', 0))
-            offset_z = float(request.form.get('offset_z', 0))
+            # Récupération des offsets avec sécurité
+            offset_x = safe_float(request.form.get('offset_x', 0))
+            offset_y = safe_float(request.form.get('offset_y', 0))
+            offset_z = safe_float(request.form.get('offset_z', 0))
 
             # Récupération du delay personnalisé en ticks
-            delay_ticks = float(request.form.get('delay_ticks', 2.8))
+            delay_ticks = safe_float(request.form.get('delay_ticks', 2.8))
 
             # Vérification du champ 'control'
             control_raw = request.form.get('control', '').strip()
             if control_raw:
                 control = tuple(map(float, control_raw.split(',')))
             else:
-                control = (
-                    (start[0] + end[0]) / 2 + offset_x,
-                    (start[1] + end[1]) / 2 + offset_y,
-                    (start[2] + end[2]) / 2 + offset_z
+                # Calcul automatique du point de contrôle avec décalage
+                midpoint = (
+                    (start[0] + end[0]) / 2,
+                    (start[1] + end[1]) / 2,
+                    (start[2] + end[2]) / 2
                 )
+                control = (
+                    midpoint[0] + offset_x,
+                    midpoint[1] + offset_y,
+                    midpoint[2] + offset_z
+                )
+
+                # Vérification du décalage maximal
+                max_offset = 100  # à ajuster selon ton usage
+                if any(abs(control[i] - midpoint[i]) > max_offset for i in range(3)):
+                    raise ValueError("Décalage trop important : le point de contrôle est hors limite.")
 
             # Calcul de la distance et du nombre d'étapes
             distance = math.sqrt(sum((end[i] - start[i])**2 for i in range(3)))
