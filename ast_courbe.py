@@ -71,7 +71,7 @@ def index():
                 )
 
                 # Vérification du décalage maximal
-                max_offset = 100  # à ajuster selon ton usage
+                max_offset = 100
                 if any(abs(control[i] - midpoint[i]) > max_offset for i in range(3)):
                     raise ValueError("Décalage trop important : le point de contrôle est hors limite.")
 
@@ -88,12 +88,15 @@ def index():
                 x, y, z = bezier(t, start, control, end)
                 current_point = (x, y, z)
 
+                # Déplacement uniquement
+                commands.append(f"minecraft:tp {uuid} {x:.2f} {y:.2f} {z:.2f}")
+
+                # Orientation séparée (optionnelle)
                 if i > 0:
                     yaw, pitch = calculate_rotation(previous_point, current_point)
-                else:
-                    yaw, pitch = 0, 0  # Valeurs initiales
+                    commands.append(f"minecraft:look {uuid} {yaw:.2f} {pitch:.2f}")
 
-                commands.append(f"minecraft:tp {uuid} {x:.2f} {y:.2f} {z:.2f} {yaw:.2f} {pitch:.2f}")
+                # Délai entre les étapes
                 commands.append(f"delay {delay_ticks}")
                 previous_point = current_point
 
@@ -109,7 +112,7 @@ def index():
 def visualisation3D():
     return render_template("visualisation3D.html")
 
-# Lancement de l'application (important pour Render)
+# Lancement de l'application
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
     app.run(host='0.0.0.0', port=port)
