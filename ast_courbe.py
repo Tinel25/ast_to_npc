@@ -13,6 +13,18 @@ def bezier(t, p0, p1, p2):
         for i in range(3)
     )
 
+# Fonction pour calculer les angles de rotation (yaw, pitch)
+def calculate_rotation(p1, p2):
+    dx = p2[0] - p1[0]
+    dy = p2[1] - p1[1]
+    dz = p2[2] - p1[2]
+
+    yaw = math.degrees(math.atan2(-dx, dz))  # Z vers le nord
+    distance_xz = math.sqrt(dx**2 + dz**2)
+    pitch = math.degrees(math.atan2(-dy, distance_xz))  # haut/bas
+
+    return yaw, pitch
+
 # Route principale
 @app.route('/', methods=['GET', 'POST'])
 def index():
@@ -37,10 +49,8 @@ def index():
             # Vérification du champ 'control'
             control_raw = request.form.get('control', '').strip()
             if control_raw:
-                # Si l'utilisateur a fourni un point de contrôle
                 control = tuple(map(float, control_raw.split(',')))
             else:
-                # Calcul automatique du point de contrôle avec décalage
                 control = (
                     (start[0] + end[0]) / 2 + offset_x,
                     (start[1] + end[1]) / 2 + offset_y,
@@ -54,19 +64,26 @@ def index():
 
             # Génération des commandes Minecraft
             commands = []
+            previous_point = start
             for i in range(steps + 1):
                 t = i / steps
                 x, y, z = bezier(t, start, control, end)
-                commands.append(f"minecraft:tp {uuid} {x:.2f} {y:.2f} {z:.2f}")
-                commands.append(f"delay {delay_ticks}")
+                current_point = (x, y, z)
 
-            # Affichage du résultat
+                if i > 0:
+                    yaw, pitch = calculate_rotation(previous_point, current_point)
+                else:
+                    yaw, pitch = 0, 0  # Valeurs initiales
+
+                commands.append(f"minecraft:tp {uuid} {x:.2f} {y:.2f} {z:.2f} {yaw:.2f} {pitch:.2f}")
+                commands.append(f"delay {delay_ticks}")
+                previous_point = current_point
+
             return render_template("ast_to_npc_result.html", commands=commands)
 
         except Exception as e:
             return f"Erreur dans les données : {e}"
 
-    # Affichage du formulaire
     return render_template("ast_to_npc.html")
 
 # Nouvelle route pour la visualisation 3D
