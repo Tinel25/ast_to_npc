@@ -70,7 +70,7 @@ def index():
 
                 # Orientation
                 yaw, pitch = calculate_yaw_pitch(previous_point, current_point)
-                commands.append(f"tp {uuid} {x:.2f} {y:.2f} {z:.2f} {yaw:.2f} {pitch:.2f}")
+                commands.append(f"minecraft:tp {uuid} {x:.2f} {y:.2f} {z:.2f} {yaw:.2f} {pitch:.2f}")
                 commands.append(f"delay {delay_ticks}")
                 previous_point = current_point
 
@@ -88,3 +88,4 @@ def visualisation3D():
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
     app.run(host='0.0.0.0', port=port)
+
