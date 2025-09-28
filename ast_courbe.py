@@ -32,9 +32,14 @@ def index():
     if request.method == 'POST':
         try:
             points_raw = request.form['points']
+            offsets_raw = request.form.get('offsets', '')
             points = parse_points(points_raw)
+            offsets = parse_points(offsets_raw)
+
             if len(points) < 2:
                 raise ValueError("Il faut au moins deux points.")
+            if len(offsets) != len(points) - 1:
+                raise ValueError("Le nombre de décalages doit être égal au nombre de segments (points - 1).")
 
             tag = request.form['tag'].strip()
             speed = safe_float(request.form['speed'], 1.0)
@@ -42,21 +47,15 @@ def index():
             tick_duration = tick_interval * 0.05
             delay_ticks = safe_float(request.form.get('delay_ticks', 2.8))
 
-            offset_x = safe_float(request.form.get('offset_x', 0))
-            offset_y = safe_float(request.form.get('offset_y', 0))
-            offset_z = safe_float(request.form.get('offset_z', 0))
-
             commands = []
 
             for idx in range(len(points) - 1):
                 start = points[idx]
                 end = points[idx + 1]
+                offset = offsets[idx]
+
                 midpoint = tuple((start[i] + end[i]) / 2 for i in range(3))
-                control = (
-                    midpoint[0] + offset_x,
-                    midpoint[1] + offset_y,
-                    midpoint[2] + offset_z
-                )
+                control = tuple(midpoint[i] + offset[i] for i in range(3))
 
                 distance = math.sqrt(sum((end[i] - start[i])**2 for i in range(3)))
                 duration = distance / speed
