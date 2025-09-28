@@ -38,32 +38,22 @@
         h2 {
             margin-top: 0;
         }
-
-        .link3D {
-            margin-top: 20px;
-        }
     </style>
 </head>
 <body>
-    <h1>Générateur de commandes TP Minecraft Tinel25 1.0</h1>
+    <h1>Générateur de commandes TP Minecraft Tinel25 2.0</h1>
     <div class="layout">
         <form method="post">
-            <label>Départ (x,y,z):</label><br>
-            <input name="start" value="0,0,0"><br><br>
+            <label>Liste des points (x,y,z) séparés par des retours à la ligne :</label><br>
+            <textarea name="points" rows="6" cols="40">0,0,0\n10,5,3\n20,8,6</textarea><br><br>
 
-            <label>Arrivée (x,y,z):</label><br>
-            <input name="end" value="0,0,0"><br><br>
-
-            <label>Point de contrôle (x,y,z) <em>(laisser vide pour auto)</em>:</label><br>
-            <input name="control" placeholder="auto"><br><br>
-
-            <label>Décalage X du point de contrôle:</label><br>
+            <label>Décalage X entre chaque point:</label><br>
             <input name="offset_x" value="0"><br><br>
 
-            <label>Décalage Y du point de contrôle:</label><br>
+            <label>Décalage Y entre chaque point:</label><br>
             <input name="offset_y" value="0"><br><br>
 
-            <label>Décalage Z du point de contrôle:</label><br>
+            <label>Décalage Z entre chaque point:</label><br>
             <input name="offset_z" value="0"><br><br>
 
             <label>Tag Minecraft:</label><br>
@@ -85,16 +75,13 @@
             <div>
                 <h2>Visualisation 2D (X-Z)</h2>
                 <canvas id="bezierCanvas" width="500" height="500"></canvas>
-                <div class="link3D">
-                    <a id="link3D" href="#" target="_blank">Ouvrir la visualisation 3D interactive</a>
-                </div>
             </div>
         </div>
     </div>
 
     <script>
-        function parseCoords(input) {
-            return input.split(',').map(Number);
+        function parseCoordsList(input) {
+            return input.split('\n').map(line => line.trim().split(',').map(Number));
         }
 
         function drawCurve2D() {
@@ -102,71 +89,47 @@
             const ctx = canvas.getContext('2d');
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-            const start = parseCoords(document.querySelector('input[name="start"]').value);
-            const end = parseCoords(document.querySelector('input[name="end"]').value);
-            const controlInput = document.querySelector('input[name="control"]').value.trim();
+            const points = parseCoordsList(document.querySelector('textarea[name="points"]').value);
             const offsetX = parseFloat(document.querySelector('input[name="offset_x"]').value) || 0;
             const offsetY = parseFloat(document.querySelector('input[name="offset_y"]').value) || 0;
             const offsetZ = parseFloat(document.querySelector('input[name="offset_z"]').value) || 0;
 
-            let control;
-            if (controlInput) {
-                control = parseCoords(controlInput);
-            } else {
-                control = [
+            for (let i = 0; i < points.length - 1; i++) {
+                const start = points[i];
+                const end = points[i + 1];
+                const control = [
                     (start[0] + end[0]) / 2 + offsetX,
                     (start[1] + end[1]) / 2 + offsetY,
                     (start[2] + end[2]) / 2 + offsetZ
                 ];
-            }
 
-            const p0 = { x: start[0], y: start[2] };
-            const p1 = { x: control[0], y: control[2] };
-            const p2 = { x: end[0], y: end[2] };
+                const p0 = { x: start[0], y: start[2] };
+                const p1 = { x: control[0], y: control[2] };
+                const p2 = { x: end[0], y: end[2] };
 
-            const minX = Math.min(p0.x, p1.x, p2.x);
-            const minY = Math.min(p0.y, p1.y, p2.y);
-            const maxX = Math.max(p0.x, p1.x, p2.x);
-            const maxY = Math.max(p0.y, p1.y, p2.y);
+                ctx.beginPath();
+                for (let t = 0; t <= 1; t += 0.01) {
+                    const x = (1 - t)**2 * p0.x + 2 * (1 - t) * t * p1.x + t**2 * p2.x;
+                    const y = (1 - t)**2 * p0.y + 2 * (1 - t) * t * p1.y + t**2 * p2.y;
 
-            const padding = 40;
-            const scaleX = (canvas.width - padding * 2) / (maxX - minX || 1);
-            const scaleY = (canvas.height - padding * 2) / (maxY - minY || 1);
+                    const canvasX = x + 250;
+                    const canvasY = 500 - (y + 250);
 
-            ctx.beginPath();
-            for (let t = 0; t <= 1; t += 0.01) {
-                const x = (1 - t)**2 * p0.x + 2 * (1 - t) * t * p1.x + t**2 * p2.x;
-                const y = (1 - t)**2 * p0.y + 2 * (1 - t) * t * p1.y + t**2 * p2.y;
-
-                const canvasX = (x - minX) * scaleX + padding;
-                const canvasY = canvas.height - ((y - minY) * scaleY + padding);
-
-                if (t === 0) {
-                    ctx.moveTo(canvasX, canvasY);
-                } else {
-                    ctx.lineTo(canvasX, canvasY);
+                    if (t === 0) {
+                        ctx.moveTo(canvasX, canvasY);
+                    } else {
+                        ctx.lineTo(canvasX, canvasY);
+                    }
                 }
+
+                ctx.strokeStyle = "#0077cc";
+                ctx.lineWidth = 2;
+                ctx.stroke();
             }
-
-            ctx.strokeStyle = "#0077cc";
-            ctx.lineWidth = 2;
-            ctx.stroke();
-
-            update3DLink(start, control, end);
         }
 
-        function update3DLink(start, control, end) {
-            const link = document.getElementById('link3D');
-            const params = new URLSearchParams({
-                start: start.join(','),
-                control: control.join(','),
-                end: end.join(',')
-            });
-            link.href = `/visualisation3D?${params.toString()}`;
-        }
-
-        document.querySelectorAll('input').forEach(input => {
-            input.addEventListener('input', drawCurve2D);
+        document.querySelectorAll('input, textarea').forEach(el => {
+            el.addEventListener('input', drawCurve2D);
         });
 
         window.onload = drawCurve2D;
