@@ -23,12 +23,19 @@ def safe_float(value, default=0.0):
     except:
         return default
 
+def parse_points(raw):
+    lines = raw.strip().split('\n')
+    return [tuple(map(float, line.strip().split(','))) for line in lines if line.strip()]
+
 @app.route('/', methods=['GET', 'POST'])
 def index():
     if request.method == 'POST':
         try:
-            start = tuple(map(float, request.form['start'].split(',')))
-            end = tuple(map(float, request.form['end'].split(',')))
+            points_raw = request.form['points']
+            points = parse_points(points_raw)
+            if len(points) < 2:
+                raise ValueError("Il faut au moins deux points.")
+
             tag = request.form['tag'].strip()
             speed = safe_float(request.form['speed'], 1.0)
             tick_interval = int(request.form['tick_interval'])
@@ -39,35 +46,33 @@ def index():
             offset_y = safe_float(request.form.get('offset_y', 0))
             offset_z = safe_float(request.form.get('offset_z', 0))
 
-            control_raw = request.form.get('control', '').strip()
-            if control_raw:
-                control = tuple(map(float, control_raw.split(',')))
-            else:
+            commands = []
+
+            for idx in range(len(points) - 1):
+                start = points[idx]
+                end = points[idx + 1]
                 midpoint = tuple((start[i] + end[i]) / 2 for i in range(3))
                 control = (
                     midpoint[0] + offset_x,
                     midpoint[1] + offset_y,
                     midpoint[2] + offset_z
                 )
-                if any(abs(control[i] - midpoint[i]) > 100 for i in range(3)):
-                    raise ValueError("Décalage trop grand pour le point de contrôle.")
 
-            distance = math.sqrt(sum((end[i] - start[i])**2 for i in range(3)))
-            duration = distance / speed
-            steps = max(1, int(duration / tick_duration))
+                distance = math.sqrt(sum((end[i] - start[i])**2 for i in range(3)))
+                duration = distance / speed
+                steps = max(1, int(duration / tick_duration))
 
-            commands = []
-            previous_point = start
-            for i in range(steps + 1):
-                t = i / steps
-                x, y, z = bezier(t, start, control, end)
-                current_point = (x, y, z)
+                previous_point = start
+                for i in range(steps + 1):
+                    t = i / steps
+                    x, y, z = bezier(t, start, control, end)
+                    current_point = (x, y, z)
 
-                yaw, pitch = calculate_yaw_pitch(previous_point, current_point)
-                selector = f"@e[type=armor_stand,tag={tag}]"
-                commands.append(f"minecraft:tp {selector} {x:.2f} {y:.2f} {z:.2f} {yaw:.2f} {pitch:.2f}")
-                commands.append(f"delay {delay_ticks}")
-                previous_point = current_point
+                    yaw, pitch = calculate_yaw_pitch(previous_point, current_point)
+                    selector = f"@e[type=armor_stand,tag={tag}]"
+                    commands.append(f"minecraft:tp {selector} {x:.2f} {y:.2f} {z:.2f} {yaw:.2f} {pitch:.2f}")
+                    commands.append(f"delay {delay_ticks}")
+                    previous_point = current_point
 
             return render_template("ast_to_npc_result.html", commands=commands)
 
@@ -75,10 +80,6 @@ def index():
             return f"Erreur : {e}"
 
     return render_template("ast_to_npc.html")
-
-@app.route('/visualisation3D')
-def visualisation3D():
-    return render_template("visualisation3D.html")
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
