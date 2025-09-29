@@ -41,7 +41,7 @@
     </style>
 </head>
 <body>
-    <h1>Générateur de commandes TP Minecraft Tinel25 4.0</h1>
+    <h1>Générateur de commandes TP Minecraft Tinel25 5.0</h1>
     <div class="layout">
         <form method="post">
             <label>Liste des points (x,y,z) séparés par des retours à la ligne :</label><br>
@@ -78,6 +78,19 @@
             return input.split('\n').map(line => line.trim().split(',').map(Number));
         }
 
+        function getBezierPoints(p0, p1, p2, steps = 100) {
+            const points = [];
+            for (let t = 0; t <= 1; t += 1 / steps) {
+                const x = (1 - t)**2 * p0.x + 2 * (1 - t) * t * p1.x + t**2 * p2.x;
+                const y = (1 - t)**2 * p0.y + 2 * (1 - t) * t * p1.y + t**2 * p2.y;
+                points.push({ x: x + 250, y: 500 - (y + 250) });
+            }
+            return points;
+        }
+
+        let animationPoints = [];
+        let animationIndex = 0;
+
         function drawCurve2D() {
             const canvas = document.getElementById('bezierCanvas');
             const ctx = canvas.getContext('2d');
@@ -85,6 +98,8 @@
 
             const points = parseCoordsList(document.querySelector('textarea[name="points"]').value);
             const offsets = parseCoordsList(document.querySelector('textarea[name="offsets"]').value);
+
+            animationPoints = [];
 
             for (let i = 0; i < points.length - 1; i++) {
                 const start = points[i];
@@ -101,20 +116,14 @@
                 const p1 = { x: control[0], y: control[2] };
                 const p2 = { x: end[0], y: end[2] };
 
+                const bezierPoints = getBezierPoints(p0, p1, p2);
+                animationPoints.push(...bezierPoints);
+
                 ctx.beginPath();
-                for (let t = 0; t <= 1; t += 0.01) {
-                    const x = (1 - t)**2 * p0.x + 2 * (1 - t) * t * p1.x + t**2 * p2.x;
-                    const y = (1 - t)**2 * p0.y + 2 * (1 - t) * t * p1.y + t**2 * p2.y;
-
-                    const canvasX = x + 250;
-                    const canvasY = 500 - (y + 250);
-
-                    if (t === 0) {
-                        ctx.moveTo(canvasX, canvasY);
-                    } else {
-                        ctx.lineTo(canvasX, canvasY);
-                    }
-                }
+                bezierPoints.forEach((pt, idx) => {
+                    if (idx === 0) ctx.moveTo(pt.x, pt.y);
+                    else ctx.lineTo(pt.x, pt.y);
+                });
 
                 ctx.strokeStyle = "#0077cc";
                 ctx.lineWidth = 2;
@@ -122,11 +131,35 @@
             }
         }
 
+        function animateDot() {
+            const canvas = document.getElementById('bezierCanvas');
+            const ctx = canvas.getContext('2d');
+
+            drawCurve2D(); // redraw curve
+
+            if (animationPoints.length > 0) {
+                const pt = animationPoints[animationIndex % animationPoints.length];
+                ctx.beginPath();
+                ctx.arc(pt.x, pt.y, 6, 0, 2 * Math.PI);
+                ctx.fillStyle = "red";
+                ctx.fill();
+                animationIndex++;
+            }
+
+            requestAnimationFrame(animateDot);
+        }
+
         document.querySelectorAll('input, textarea').forEach(el => {
-            el.addEventListener('input', drawCurve2D);
+            el.addEventListener('input', () => {
+                animationIndex = 0;
+                drawCurve2D();
+            });
         });
 
-        window.onload = drawCurve2D;
+        window.onload = () => {
+            drawCurve2D();
+            animateDot();
+        };
     </script>
 </body>
 </html>
